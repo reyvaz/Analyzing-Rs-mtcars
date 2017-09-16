@@ -1,0 +1,149 @@
+---
+title: "Analyzing the Effects of Automatic and Manual Transmissions on Fuel Efficiency"
+author: "Reynaldo"
+date: "4/30/2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Executive Summary
+This report analyses the R dataset mtcars to explore the relationship between car fuel efficiency, specified as miles per gallon (mpg), and the type of transmission, i.e. automatic or manual. The data was originally extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 1973–74 models.   
+
+This analysis finds a significant relationship between mpg and the type of transmission. Specifically, manual transmission cars are associated with higher mpg (i.e. better efficiency). However, there are confounding factors that affect this relationship. For example, automatic cars are associated with higher weight and larger engines, which also affect efficiency. The relationship between efficiency and type of transmission is robust to different specifications. 
+
+The variables in the dataset are listed as follow,
+
+        [, 1]	mpg     Miles/(US) gallon  
+        [, 2]	cyl     Number of cylinders  
+        [, 3]	disp    Displacement (cu.in.)  
+        [, 4]	hp      Gross horsepower  
+        [, 5]	drat    Rear axle ratio  
+        [, 6]	wt      Weight (1000 lbs)  
+        [, 7]	qsec    1/4 mile time  
+        [, 8]	vs      V/S  
+        [, 9]	am      Transmission (0 = automatic, 1 = manual)  
+        [,10]	gear    Number of forward gears  
+        [,11]	carb    Number of carburetors  
+
+
+1. Necessary packages
+```{r packs, warning=FALSE, message=FALSE}
+library(datasets);library(ggplot2);library(plyr);library(dplyr)
+library(gridExtra);library(car);library(memisc)
+```
+
+2. Data
+```{r data, results = "hide"}
+data <- mtcars
+factors <- c(2,8,9,10)
+data[,factors] <- data.frame(apply(data[factors], 2, as.factor))
+data$am <- revalue(data$am, c("1" = "manual", "0" = "autom"))
+data <- cbind(cars = row.names(data), data)
+data <- arrange(data, mpg)
+```
+
+3. Graphical Analysis
+```{r fig1, fig.width=9, fig.height=5.5, fig.align = 'center'}
+f1 <- ggplot(data, aes(am, mpg)) + theme_bw() +
+        geom_boxplot(fill = "#cc66ff", alpha = 0.8) + xlab("transmission")
+f2 <- ggplot(data, aes(wt, mpg, colour = am)) + theme_bw() +
+        geom_point(alpha = 0.8) + xlab("weight (1000lbs)") + ylab("mpg") +
+        scale_colour_manual("transmission", values = c("#1a75ff", "#ff1a75"))
+f3 <- ggplot(data, aes(cyl, fill = am)) + theme_bw() +
+        geom_bar() + xlab("number of cylinders") + ylab("count") +
+        scale_fill_manual("transmission", values = c("#1a75ff", "#ff1a75"))
+f4 <- ggplot(data, aes(cyl, mpg)) + theme_bw() + ylab("mpg") +
+        geom_boxplot(fill = "#ff9900", alpha = 0.8) + xlab("number of cylinders") 
+grid.arrange(f1, f2, f3, f4, ncol = 2)
+```
+
+From the top-left clockwise. The first plot shows that manual transmission cars are associated with better fuel efficiency. The second plot shows a negative relationship between fuel efficiency and weight, but also shows that heavier vehicles tend to be automatic. The third plot shows that cars with bigger engines tend to be automatic. The fourth plot shows a negative relationship between engine size and fuel efficiency.
+
+The variables to be included in the model were chosen according to their plausibility of directly affecting fuel efficiency. For example, it would be expected that engine size (cyl) and vehicle weight (wt) directly affect fuel consumption, while other variables, such as horse power (hp) and/or quarter-mile time (qsec) --although correlated with mpg-- do not directly affect it. It could be argued that the latter are themselves due to engine size and/or vehicle weight and do not independently affect mpg.   
+
+4. The following four models attempt to investigate the effect of type of transmission on fuel efficiency. They will explore the interplay between the type of transmission and other plausible confounding factors. The 1st model takes transmission type (am) as its only regressor. The 2nd model adds engine size (cyl). The 3rd, engine adds weight (wt). And the 4th model considers an interaction between weight and type of transmission in addition to the above.   
+
+```{r regs}
+model1 <- lm(mpg~am, data)
+model2 <- lm(mpg~am+cyl, data)
+model3 <- lm(mpg~am+cyl+wt, data)
+model4 <- lm(mpg~am+cyl+wt+am*wt, data)
+```
+
+```{r regsreport, echo = FALSE}
+m1 <- mtable(model1, model2, model3, model4, signif.symbols=getOption("signif.symbols"))
+(m1 <- relabel(m1, "(Intercept)" = "Intercept (autom, 4cyl)","am: manual/autom" = 
+                       "manual","cyl: 6/4" = "cyl 6", "cyl: 8/4" = 
+                       "cyl 8","am: manual/autom x wt" = "manual*wt"))
+```
+
+The results of model 1 show that there is a significant relationship between fuel efficiency and type of transmission. With at least 99% confidence, cars with manual transmission are, on average, `r round(model1$coefficient[2], 3)` mpg more efficient than their automatic counterparts. However, this relationship can be --completely or partially-- due to other factors, as investigated below.  
+
+When engine size (cyl) is included in model 2, the variation due to transmission type becomes smaller and statistically insignificant, instead the bulk of the variation in mpg is now attributed to engine size, larger engine means less mpg efficiency. Similarly, in model 3 the introduction of weight as a regressor renders the transmission effect even smaller and also statistically insignificant. We could have expected these results from the graphical analysis above, where transmission type is highly correlated with engine size and vehicle weight.   
+
+Model 4 includes an interaction variable to separate the effect between weight and transmission type. In this model, transmission type seems to have a large and statistically significant effect. When accounting for engine size and the interaction between weight and type of transmission, manual transmission cars are associated with an `r round(model4$coefficient[2], 3)` mpg efficiency increase compared to their automatic counterparts.  
+
+The inclusion of the interaction variable improves the predictive ability of the model as seen by the higher R-squared and the lower deviance value. Including more variables to model 4 (omitted here), specifically an interaction between engine size and transmission type, do not significantly improve the predictive ability of the model and it comes with a cost on degrees of freedom. Also, the inclusions (or lack thereof) do not change the main qualitative result regarding the studied (am) variable. 
+
+5. Analysis of variance table
+```{r anova1}
+anova(model1, model2, model3, model4)
+```
+
+Similar to the previous results, the anova comparison further supports that model 4 improves on the other 3 specifications. RSS (deviance as seen in the previous table) is lowest for model 4, and the values of F and Pr(>F) support the inclusion of the interaction variable. 
+
+6. Model 4 vs. a similar model that does not include transmission type: anova and graphical comparison
+```{r anova2}
+amNo <- lm(mpg~wt+cyl, data)
+anova(amNo, model4)
+```
+
+```{r figmix, fig.width=9, fig.height=5, fig.align='center', echo = FALSE}
+mpghat <- predict(model4)
+x = 1:32
+amNohat <- predict(amNo)
+labels <- c("\nobserved mpg \n", "\npredicted mpg \nmodel 4 \n", "\npredicted mpg \nmodel with no \ntransmission type \n" )
+f5 <- ggplot() + theme_bw() +
+        geom_line(aes(x=x, y=mpg, colour="observed mpg"), data) + 
+        geom_point(aes(x=x, y=mpg, colour="observed mpg"), data) + 
+        geom_line(aes(x=x, y=mpghat, colour="predicted mpg")) +
+        geom_line(aes(x=x, y=amNohat, colour="predicted NoAm")) +
+        geom_point(aes(x=x, y=mpghat, colour="predicted mpg")) +
+        geom_point(aes(x=x, y=amNohat, colour="predicted NoAm")) +
+        scale_x_discrete(limits = x, labels=data$cars) +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7.5),
+              legend.title = element_blank()) +
+        labs(title = "Observed vs. Predicted mpg", x="Vehicle") +
+        scale_colour_manual(labels = labels, values = c("purple", "#ff1a75", "orange"))
+f5
+```
+
+Including transmission type, improves (although modestly) the predictive ability of the model compared to a model without it. I suspect the effect is only modest because of the effects of the other 2 factors. When transmission type is excluded, the other two factors "absorb" most of its effect because of the strong correlations seen in the first graphical analysis.  
+
+More important however, is that although both models fare similarly in terms of predictive ability, model 4 allows us to explore the relationship between transmission type and mpg which is the topic of this analysis. Excluding transmission type, confounds its effects on mpg by the other two variables. Model 4 on the other hand, separates --at least partially-- the effect of transmission type from the other variables.
+
+7. Residual analysis on model 4.  
+
+```{r normality, fig.width=9, fig.height=4}
+par(mfrow = c(1, 2))
+plot(model4, which=1)
+plot(model4, which=2)
+```
+
+A **mean of the residuals $`r mean(resid(model4))`$** close to zero; a **Shapiro-Wilk normality test with p.value $`r shapiro.test(resid(model4))[2]`$**, which fails to reject the null hypothesis that the residuals come from a Normal distribution; and the Normal Q-Q graphical analysis, validate a *sufficient* normality of the residuals from model 4.
+
+8. Analysis of influence
+```{r influence}
+dfb  <- dfbetas(model4)   
+hv   <- hatvalues(model4)      
+rs   <- rstandard(model4) 
+vif4 <- vif(model4)
+```
+
+Analyses of influence (results omitted) do not report any major problems with outliers, specifically with observations 24, 31, and 32 as shown in the previous plot.  
+
+##Conclusion##
+This analysis finds a significant relationship between car fuel efficiency and type of transmission. Manual transmission cars are associated with higher mpg. However, there are other factors that confound this relationship. For example, automatic cars are associated with higher weight and larger engines, which in turn also reduce efficiency. In the best model proposed, which accounts for engine size and and the interaction between weight and type of transmission, manual transmission cars are associated with an `r round(model4$coefficient[2], 3)` mpg efficiency increase as compared to their automatic transmission counterparts. The model is able to predict the observed efficiency with fair accuracy and is robust to different plausible specifications. 
+
+
