@@ -19,6 +19,6 @@ The data is available in the R datasets. It was accessed for this analysis on Ap
 <center>
 <a href="https://reyvaz.github.io/Analyzing-Rs-mtcars/mt_cars_lm.html" rel="see html report">
 <img src="mt_cars_lm_files/figure-html/figmix-1.png" alt="Drawing" 
-style="width: 600px;"/></a>
+style="width: 800px;"/></a>
 </center>
 <br>  
