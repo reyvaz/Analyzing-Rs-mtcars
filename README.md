@@ -1,5 +1,5 @@
 [**CLICK HERE**](https://reyvaz.github.io/Analyzing-Rs-mtcars/mt_cars_lm.html)
-to see full report in html
+to see the report in rendered html
 
 ## The Effects of Automatic and Manual Transmissions on Fuel Efficiency
 
@@ -11,14 +11,14 @@ The data is available in the R datasets. It was accessed for this analysis on Ap
 
 * The rendered html version of the analysis can be found [here](https://reyvaz.github.io/Analyzing-Rs-mtcars/mt_cars_lm.html).   
 
-* To recreate the entire report simply run [mt_cars_lm.Rmd](mt_cars_lm.Rmd) script. 
+* To recreate the entire report simply run the [mt_cars_lm.Rmd](mt_cars_lm.Rmd) script. 
 
 [GitHub Pages Link](https://reyvaz.github.io/Analyzing-Rs-mtcars/)  
-<br>
 
-<center>
-<a href="https://reyvaz.github.io/Analyzing-Rs-mtcars/mt_cars_lm.html" rel="see html report">
-<img src="mt_cars_lm_files/figure-html/figmix-1.png" alt="Drawing" 
-style="width: 800px;"/></a>
-</center>
-<br>  
+<br>
+<p align="center">
+<a href="https://reyvaz.github.io/Analyzing-Rs-mtcars/mt_cars_lm.html"
+rel="see html report">
+<img src="mt_cars_lm_files/figure-html/figmix-1.png" alt="Drawing" width = "700"></a>
+</p>
+<br>
