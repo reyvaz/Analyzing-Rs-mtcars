@@ -3,7 +3,8 @@ title: "Analyzing the Effects of Automatic and Manual Transmissions on Fuel Effi
 author: "Reynaldo Vazquez"
 date: "4/30/2017"
 output:
-  html_document: default
+  html_document: 
+    self_contained: no
   pdf_document: default
 ---
 
