@@ -1,10 +1,10 @@
 ---
 title: "Analyzing the Effects of Automatic and Manual Transmissions on Fuel Efficiency"
-author: "Reynaldo"
+author: "Reynaldo Vazquez"
 date: "4/30/2017"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ## Executive Summary
